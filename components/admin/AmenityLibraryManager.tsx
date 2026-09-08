@@ -52,9 +52,37 @@ function TagInput({
   const add = () => {
     const trimmed = input.trim();
     if (!trimmed) return;
-    const entry = `${selectedEmoji}::${trimmed}`;
-    if (items.includes(entry) || items.includes(trimmed)) return;
-    onChange([...items, entry]);
+
+    // Split on commas (and newlines, in case of paste) so a batch like
+    // "Digital Lock, Video Door Panel, Vitrified Tiles" becomes multiple
+    // separate values instead of one combined string.
+    const parts = trimmed
+      .split(/[,\n]/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    if (parts.length === 0) return;
+
+    const existingNames = new Set(
+      items.map((i) => {
+        const sep = i.indexOf('::');
+        return (sep !== -1 ? i.slice(sep + 2) : i).toLowerCase();
+      })
+    );
+
+    const newEntries: string[] = [];
+    for (const part of parts) {
+      if (existingNames.has(part.toLowerCase())) continue;
+      // If only one part (normal single-value add), respect the emoji the
+      // user picked. For a multi-value batch, guess a fitting emoji per item.
+      const emoji = parts.length === 1 ? selectedEmoji : guessEmoji(part);
+      newEntries.push(`${emoji}::${part}`);
+      existingNames.add(part.toLowerCase());
+    }
+
+    if (newEntries.length === 0) return;
+
+    onChange([...items, ...newEntries]);
     setInput('');
     setSelectedEmoji('✨');
     setShowPicker(false);
