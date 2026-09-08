@@ -19,6 +19,7 @@ function formatIndianCurrency(num: number): string {
 export default function UnitConfigForm({ units, onChange, errors }: UnitConfigFormProps) {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [priceInputs, setPriceInputs] = useState<Record<string, string>>({});
+  const [areaInputs, setAreaInputs] = useState<Record<string, string>>({});
 
   const parseIntInput = (val: string): number | undefined => {
     const n = parseInt(val.replace(/^0+/, ''), 10)
@@ -232,9 +233,25 @@ export default function UnitConfigForm({ units, onChange, errors }: UnitConfigFo
                   <Maximize className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                   <input
                     type="text"
-                    inputMode="numeric"
-                    value={unit.area}
-                    onChange={(e) => updateUnit(unit.id, { area: parseFloatInput(e.target.value) ?? 0 })}
+                    inputMode="decimal"
+                    value={areaInputs[unit.id] ?? (unit.area || unit.area === 0 ? String(unit.area) : '')}
+                    onFocus={() => {
+                      setAreaInputs(prev => ({ ...prev, [unit.id]: String(unit.area ?? '') }));
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (/^\d*\.?\d*$/.test(raw)) {
+                        setAreaInputs(prev => ({ ...prev, [unit.id]: raw }));
+                        updateUnit(unit.id, { area: parseFloatInput(raw) ?? 0 });
+                      }
+                    }}
+                    onBlur={() => {
+                      setAreaInputs(prev => {
+                        const next = { ...prev };
+                        delete next[unit.id];
+                        return next;
+                      });
+                    }}
                     className="w-full bg-transparent border-none text-xs text-[var(--text-primary)] focus:outline-none"
                   />
                 </div>

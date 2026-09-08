@@ -22,6 +22,7 @@ const FORM_SECTIONS: FormSection[] = [
   { id: 'pricing', label: 'Pricing' },
   { id: 'rera', label: 'RERA' },
   { id: 'legal', label: 'Legal' },
+  { id: 'pros-cons', label: 'Pros & Cons' },
   { id: 'amenities-nearby', label: 'Amenities & Nearby' },
 ];
 
@@ -131,6 +132,14 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
   const [landParcelInput, setLandParcelInput] = useState<string>(
     initialData?.landParcelAcres != null ? String(initialData.landParcelAcres) : ''
   );
+  const [latInput, setLatInput] = useState(project.lat != null ? String(project.lat) : '');
+  const [lngInput, setLngInput] = useState(project.lng != null ? String(project.lng) : '');
+
+  useEffect(() => {
+    if (initialData?.lat != null) setLatInput(String(initialData.lat));
+    if (initialData?.lng != null) setLngInput(String(initialData.lng));
+    if (initialData?.landParcelAcres != null) setLandParcelInput(String(initialData.landParcelAcres));
+  }, [initialData?.lat, initialData?.lng, initialData?.landParcelAcres]);
 
   // Fetch builders on mount
   useEffect(() => {
@@ -739,8 +748,14 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
               <input
                 type="text"
                 inputMode="decimal"
-                value={project.lat ?? ''}
-                onChange={(e) => setProject({...project, lat: parseFloatInput(e.target.value) ?? 18.5204})}
+                value={latInput}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (/^-?\d*\.?\d*$/.test(raw)) {
+                    setLatInput(raw);
+                    setProject({ ...project, lat: parseFloatInput(raw) ?? 18.5204 });
+                  }
+                }}
                 className={`w-full bg-[var(--surface-raised)] border rounded-xl px-4 py-2.5 text-sm ${errors.lat ? 'border-red-500' : 'border-[var(--border)]'}`}
               />
               {renderFieldError('lat')}
@@ -750,8 +765,14 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
               <input
                 type="text"
                 inputMode="decimal"
-                value={project.lng ?? ''}
-                onChange={(e) => setProject({...project, lng: parseFloatInput(e.target.value) ?? 73.8567})}
+                value={lngInput}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (/^-?\d*\.?\d*$/.test(raw)) {
+                    setLngInput(raw);
+                    setProject({ ...project, lng: parseFloatInput(raw) ?? 73.8567 });
+                  }
+                }}
                 className={`w-full bg-[var(--surface-raised)] border rounded-xl px-4 py-2.5 text-sm ${errors.lng ? 'border-red-500' : 'border-[var(--border)]'}`}
               />
               {renderFieldError('lng')}
@@ -1279,7 +1300,7 @@ export default function ProjectForm({ initialData }: ProjectFormProps) {
       </div>
 
       {/* Pros & Cons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div id="pros-cons" className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border)] space-y-4">
           <h3 className="text-sm font-bold text-[var(--success)] uppercase tracking-widest">Pros</h3>
           <div className="flex gap-2">
